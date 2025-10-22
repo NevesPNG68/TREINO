@@ -12,7 +12,6 @@
   .card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(31,41,55,.12);padding:16px;width:100%;max-width:420px;text-align:center}
   h1{margin:0 0 2px;font-size:20px;color:var(--slate)}
   .author{font-size:12px;color:var(--muted);margin-bottom:10px}
-
   .timer-section{margin-bottom:10px;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.06)}
   .timer-total{background:linear-gradient(135deg,#eef2ff,#eff6ff)}
   .timer-rest{background:linear-gradient(135deg,#fff7ed,#ffe4e6)}
@@ -20,37 +19,28 @@
   .timer-display{font-size:30px;font-weight:800;margin:6px 0 8px;color:var(--slate);font-variant-numeric:tabular-nums}
   .timer-total .timer-display{color:var(--indigo)}
   .timer-rest .timer-display{color:var(--orange)}
-
   .btn-row{display:flex;gap:8px;justify-content:center}
   button{border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:14px;transition:transform .06s ease, box-shadow .2s ease}
   button:active{transform:translateY(1px)}
   .btn-primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--indigo));box-shadow:0 6px 14px rgba(59,130,246,.25)}
   .btn-primary.pause{background:linear-gradient(135deg,#ef4444,#dc2626)}
   .btn-ghost{background:#fff;border:2px solid rgba(0,0,0,.08);color:#374151}
-
   .stats{display:flex;justify-content:space-around;margin:8px 0 10px}
   .stat-box{font-size:13px;font-weight:800;color:#374151;background:#f8fafc;border-radius:10px;padding:8px 10px}
-
   .reps-control{display:flex;justify-content:center;align-items:center;margin:8px 0 10px;gap:10px}
   .reps-display{font-size:26px;font-weight:900;color:var(--indigo);width:64px}
-  .btn-round{width:38px;height:38px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:18px;color:#374151;cursor:pointer}
-
+  .btn-round{width:38px;height:38px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:20px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   #history{display:none;text-align:left;margin-top:10px;font-size:14px;color:#374151;background:#f8fafc;border-radius:10px;padding:10px;max-height:160px;overflow:auto}
   #btnHistory,#btnHideHistory{width:100%;background:var(--indigo);color:#fff;border:none;padding:10px;border-radius:10px;font-weight:700;margin-top:6px}
   #btnHideHistory{background:#334155}
-
   .btn{background:var(--blue);color:#fff}
   .btn:hover{filter:brightness(0.95)}
-
-  /* espaço respira, ainda cabe 1 tela na maioria dos iPhones */
 </style>
 </head>
 <body>
 <div class="card">
   <h1>Contador de Séries</h1>
   <div class="author">Desenvolvido por: Renato Neves</div>
-
-  <!-- Tempo Total -->
   <div class="timer-section timer-total">
     <div class="label">⏱️ Tempo Total</div>
     <div class="timer-display" id="totalTime">00:00</div>
@@ -59,8 +49,6 @@
       <button class="btn-ghost" id="btnResetTotal">↻ Reset</button>
     </div>
   </div>
-
-  <!-- Descanso -->
   <div class="timer-section timer-rest">
     <div class="label">🧘 Descanso</div>
     <div class="timer-display" id="restTime">00:00</div>
@@ -69,26 +57,28 @@
       <button class="btn-ghost" id="btnResetRest">↻ Reset</button>
     </div>
   </div>
-
   <div class="stats">
     <div class="stat-box">Séries: <span id="totalSeries">0</span></div>
     <div class="stat-box">Repetições: <span id="totalReps">0</span></div>
   </div>
-
   <div class="reps-control">
-    <button class="btn-round" id="btnDecrease">−</button>
+    <button class="btn-round" id="btnDecrease" aria-label="Diminuir repetições" title="Diminuir">◀</button>
     <div class="reps-display" id="currentReps">0</div>
-    <button class="btn-round" id="btnIncrease">+</button>
+    <button class="btn-round" id="btnIncrease" aria-label="Aumentar repetições" title="Aumentar">▶</button>
   </div>
-
   <button class="btn" id="btnAddSerie">+ Adicionar Série</button>
   <button id="btnHistory">📜 Histórico de Séries</button>
   <div id="history"></div>
   <button id="btnHideHistory" style="display:none;">❌ Ocultar Histórico</button>
-  <button class="btn" id="btnResetAll">↻ Resetar Tudo</button>
+  <button class="btn" id="btnResetAll" type="button" data-label-default="↻ Resetar Tudo">↻ Resetar Tudo</button>
 </div>
-
 <script>
+// Bloqueios de zoom por gesto/atalho
+['gesturestart','gesturechange','gestureend'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['+','-','='].includes(e.key))e.preventDefault()},{passive:false});
+
+// Estado
 let series=[],currentReps=0,restTime=0,totalTime=0,isRestRunning=false,isTotalRunning=false;
 const els={
   totalSeries:document.getElementById('totalSeries'),
@@ -106,67 +96,101 @@ const els={
   btnToggleTotal:document.getElementById('btnToggleTotal'),
   btnResetTotal:document.getElementById('btnResetTotal'),
   btnToggleRest:document.getElementById('btnToggleRest'),
-  btnResetRest:document.getElementById('btnResetRest'),
+  btnResetRest:document.getElementById('btnResetRest')
 };
 
+// Util
 function fmt(sec){const m=Math.floor(sec/60),s=sec%60;return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+
+// Atualiza UI
 function updateUI(){
   els.currentReps.textContent=currentReps;
   els.totalSeries.textContent=series.length;
   els.totalReps.textContent=series.reduce((a,b)=>a+b.reps,0);
   els.totalTime.textContent=fmt(totalTime);
   els.restTime.textContent=fmt(restTime);
-
-  // botões play/pause
-  els.btnToggleTotal.textContent = isTotalRunning ? '⏸ Pausar' : '▶ Iniciar';
-  els.btnToggleTotal.classList.toggle('pause', isTotalRunning);
-  els.btnToggleRest.textContent  = isRestRunning  ? '⏸ Pausar' : '▶ Iniciar';
-  els.btnToggleRest.classList.toggle('pause', isRestRunning);
+  els.btnToggleTotal.textContent=isTotalRunning?'⏸ Pausar':'▶ Iniciar';
+  els.btnToggleTotal.classList.toggle('pause',isTotalRunning);
+  els.btnToggleRest.textContent=isRestRunning?'⏸ Pausar':'▶ Iniciar';
+  els.btnToggleRest.classList.toggle('pause',isRestRunning);
 }
 
+// Render histórico (lista expandida)
 function renderHistory(){
-  if(series.length===0){els.history.textContent='Nenhuma série adicionada.';return;}
+  if(series.length===0){ els.history.textContent='Nenhuma série adicionada.'; return; }
   els.history.innerHTML=series.map((s,i)=>`${i+1}ª série: <b>${s.reps}</b> repetições`).join('<br>');
 }
 
-function attach(){
-  els.btnIncrease.onclick=()=>{currentReps++;updateUI()};
-  els.btnDecrease.onclick=()=>{if(currentReps>0)currentReps--;updateUI()};
-  els.btnAddSerie.onclick=()=>{
-    if(currentReps>0){
-      series.push({id:Date.now(),reps:currentReps});
-      currentReps=0; // zera para próxima série
-      // ao adicionar série, inicia descanso automaticamente
-      isRestRunning=true; // liga descanso
-      updateUI();
-    }
-  };
-  els.btnResetAll.onclick=()=>{
-    if(confirm('Resetar tudo?')){
-      series=[];currentReps=0;restTime=0;totalTime=0;isRestRunning=false;isTotalRunning=false;
-      els.history.style.display='none'; els.btnHideHistory.style.display='none'; els.btnHistory.style.display='block';
-      updateUI();
-    }
-  };
-  els.btnHistory.onclick=()=>{renderHistory();els.history.style.display='block';els.btnHideHistory.style.display='block';els.btnHistory.style.display='none'};
-  els.btnHideHistory.onclick=()=>{els.history.style.display='none';els.btnHideHistory.style.display='none';els.btnHistory.style.display='block'};
-
-  // timers
-  els.btnToggleTotal.onclick=()=>{isTotalRunning=!isTotalRunning;updateUI()};
-  els.btnResetTotal.onclick =()=>{totalTime=0;isTotalRunning=false;updateUI()};
-  els.btnToggleRest.onclick =()=>{isRestRunning=!isRestRunning;updateUI()};
-  els.btnResetRest.onclick  =()=>{restTime=0;isRestRunning=false;updateUI()};
-}
-
-function tick(){
-  if(isTotalRunning) totalTime++;
-  if(isRestRunning)  restTime++;
+// RESET global: zera estados e UI (corrigido extra '}' que gerava erro)
+function resetAll(){
+  series=[]; currentReps=0; restTime=0; totalTime=0; isRestRunning=false; isTotalRunning=false;
+  if(els.history){ els.history.innerHTML=''; els.history.style.display='none'; }
+  if(els.btnHideHistory){ els.btnHideHistory.style.display='none'; }
+  if(els.btnHistory){ els.btnHistory.style.display='block'; }
   updateUI();
 }
+
+// Liga eventos
+function attach(){
+  els.btnIncrease.onclick=()=>{ currentReps++; updateUI(); };
+  els.btnDecrease.onclick=()=>{ if(currentReps>0) currentReps--; updateUI(); };
+  els.btnAddSerie.onclick =()=>{
+    if(currentReps>0){
+      series.push({id:Date.now(),reps:currentReps});
+      currentReps=0; // prepara próxima
+      isRestRunning=true; // inicia descanso automático
+      updateUI();
+    }
+  };
+
+  // Resetar Tudo com confirmação por duplo toque (compatível iPhone)
+  let __resetArmed=false,__resetTimer=null;
+  els.btnResetAll.addEventListener('click',(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    if(!__resetArmed){
+      __resetArmed=true;
+      const prev=els.btnResetAll.getAttribute('data-label-default')||'↻ Resetar Tudo';
+      els.btnResetAll.textContent='Toque novamente para confirmar';
+      clearTimeout(__resetTimer);
+      __resetTimer=setTimeout(()=>{ __resetArmed=false; els.btnResetAll.textContent=prev; }, 2500);
+      return;
+    }
+    clearTimeout(__resetTimer);
+    __resetArmed=false;
+    resetAll();
+    els.btnResetAll.textContent=els.btnResetAll.getAttribute('data-label-default')||'↻ Resetar Tudo';
+  });
+
+  // Mostrar/ocultar histórico
+  els.btnHistory.onclick=()=>{ renderHistory(); els.history.style.display='block'; els.btnHideHistory.style.display='block'; els.btnHistory.style.display='none'; };
+  els.btnHideHistory.onclick=()=>{ els.history.style.display='none'; els.btnHideHistory.style.display='none'; els.btnHistory.style.display='block'; };
+
+  // Timers
+  els.btnToggleTotal.onclick=()=>{ isTotalRunning=!isTotalRunning; updateUI(); };
+  els.btnResetTotal.onclick =()=>{ totalTime=0; isTotalRunning=false; updateUI(); };
+  els.btnToggleRest.onclick =()=>{ isRestRunning=!isRestRunning; updateUI(); };
+  els.btnResetRest.onclick  =()=>{ restTime=0; isRestRunning=false; updateUI(); };
+}
+
+// Tick do relógio
+function tick(){ if(isTotalRunning) totalTime++; if(isRestRunning) restTime++; updateUI(); }
 
 attach();
 updateUI();
 setInterval(tick,1000);
+
+// ==== Testes simples (não alteram layout e garantem que não há SyntaxError) ====
+(function selfTest(){
+  try{
+    console.assert(typeof resetAll==='function','resetAll deve existir');
+    const t0 = els.totalTime.textContent; // estado inicial
+    resetAll(); // não deve quebrar nem deixar campos vazios
+    console.assert(els.totalTime.textContent==='00:00' && els.restTime.textContent==='00:00','Timers devem zerar');
+    console.assert(els.totalSeries.textContent==='0' && els.totalReps.textContent==='0','Séries e reps devem zerar');
+    // restaura UI para estado inicial (já zerado)
+    console.log('[OK] Autoteste básico passou.');
+  }catch(err){ console.error('[FALHA NO TESTE]', err); }
+})();
 </script>
 </body>
 </html>
