@@ -1,386 +1,172 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <meta name="description" content="Contador moderno de séries com timer de treino e descanso" />
-  <meta name="theme-color" content="#4F46E5" />
-  <title>Contador de Séries</title>
-  <style>
-    :root {
-      --card-gap: 12px;
-      --series-max-h: 128px; /* ajustado p/ iPhone 15 Pro Max */
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; -webkit-text-size-adjust: 100%; }
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif;
-      background: linear-gradient(135deg,#f0f4ff 0%,#e0e7ff 50%,#f3e8ff 100%);
-      min-height:100svh;height:100svh;overflow:hidden;display:flex;align-items:center;justify-content:center;
-      padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px))
-              max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
-      touch-action:manipulation; overscroll-behavior:none; -webkit-user-select:none; user-select:none;
-    }
-    .container{width:100%;max-width:420px;}
-    .card{
-      background:#fff;border-radius:16px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1);
-      padding:12px;display:grid;gap:var(--card-gap);
-      /* header, total, rest, stats, input, list flex, rodapé */
-      grid-template-rows:auto auto auto auto auto 1fr auto;
-      height:calc(100svh - 2 * max(10px, env(safe-area-inset-bottom,0px)));
-    }
-    .header{text-align:center}
-    .header h1{font-weight:700;color:#1f2937;margin-bottom:4px;font-size:clamp(18px,4.5vw,22px)}
-    .header p{color:#6b7280;font-size:clamp(11px,3.2vw,13px)}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Contador de Séries</title>
+<style>
+  :root{
+    --indigo:#4f46e5;--blue:#3b82f6;--orange:#fb923c;--rose:#fb7185;--slate:#1f2937;--muted:#6b7280;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:linear-gradient(135deg,#eef2ff,#fff7ed);display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:10px}
+  .card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(31,41,55,.12);padding:16px;width:100%;max-width:420px;text-align:center}
+  h1{margin:0 0 2px;font-size:20px;color:var(--slate)}
+  .author{font-size:12px;color:var(--muted);margin-bottom:10px}
 
-    .timer-section{padding:10px;border-radius:12px;border:2px solid}
-    .timer-total{background:linear-gradient(to right,#f0fdf4,#f0fdfa);border-color:#86efac}
-    .timer-rest{background:linear-gradient(to right,#fef3c7,#fee2e2);border-color:#fbbf24}
-    .timer-label{font-size:12px;font-weight:600;color:#374151;text-align:center;margin-bottom:6px}
-    .timer-display{font-weight:800;text-align:center;font-family:'Courier New',monospace;letter-spacing:.08em;line-height:1;font-size:clamp(28px,8.6vw,40px);margin-bottom:6px}
-    .timer-total .timer-display{color:#16a34a}
-    .timer-rest .timer-display{color:#ea580c}
+  .timer-section{margin-bottom:10px;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.06)}
+  .timer-total{background:linear-gradient(135deg,#eef2ff,#eff6ff)}
+  .timer-rest{background:linear-gradient(135deg,#fff7ed,#ffe4e6)}
+  .label{font-size:12px;color:#374151;font-weight:700;letter-spacing:.02em}
+  .timer-display{font-size:30px;font-weight:800;margin:6px 0 8px;color:var(--slate);font-variant-numeric:tabular-nums}
+  .timer-total .timer-display{color:var(--indigo)}
+  .timer-rest .timer-display{color:var(--orange)}
 
-    .button-group{display:flex;gap:8px;justify-content:center}
-    button{
-      border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;
-      padding:10px 14px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation
-    }
-    .btn-play{flex:1;background:#22c55e;color:#fff}
-    .btn-play:hover{background:#16a34a}
-    .btn-play.pause{background:#ef4444}
-    .btn-play.pause:hover{background:#dc2626}
-    .btn-reset{background:#fff;border:2px solid;color:#374151}
-    .timer-total .btn-reset{border-color:#86efac;color:#16a34a}
-    .timer-rest .btn-reset{border-color:#fbbf24;color:#ea580c}
+  .btn-row{display:flex;gap:8px;justify-content:center}
+  button{border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:14px;transition:transform .06s ease, box-shadow .2s ease}
+  button:active{transform:translateY(1px)}
+  .btn-primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--indigo));box-shadow:0 6px 14px rgba(59,130,246,.25)}
+  .btn-primary.pause{background:linear-gradient(135deg,#ef4444,#dc2626)}
+  .btn-ghost{background:#fff;border:2px solid rgba(0,0,0,.08);color:#374151}
 
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .stat-box{background:#f3f4f6;border-radius:10px;padding:8px;text-align:center}
-    .stat-box.blue{background:#eff6ff}
-    .stat-box.indigo{background:#eef2ff}
-    .stat-number{font-size:clamp(18px,5.8vw,26px);font-weight:800;margin-bottom:2px}
-    .stat-box.blue .stat-number{color:#2563eb}
-    .stat-box.indigo .stat-number{color:#4f46e5}
-    .stat-label{font-size:12px;color:#6b7280}
+  .stats{display:flex;justify-content:space-around;margin:8px 0 10px}
+  .stat-box{font-size:13px;font-weight:800;color:#374151;background:#f8fafc;border-radius:10px;padding:8px 10px}
 
-    .input-section{background:linear-gradient(to right,#f0f4ff,#eef2ff);border-radius:12px;padding:10px}
-    .input-label{font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;display:block}
-    .reps-control{display:flex;align-items:center;justify-content:center;gap:10px}
-    .btn-control{
-      width:44px;height:44px;padding:0;border-radius:10px;border:2px solid #d1d5db;background:#fff;
-      font-size:22px;color:#374151;line-height:1;touch-action:manipulation
-    }
-    .btn-control:hover{border-color:#9ca3af}
-    .reps-display{font-size:clamp(30px,9.5vw,44px);font-weight:800;color:#4f46e5;width:88px;text-align:center}
-    .btn-plus{
-      width:44px;height:44px;padding:0;border-radius:10px;background:linear-gradient(to right,#3b82f6,#4f46e5);
-      color:#fff;border:none;font-size:22px;line-height:1;touch-action:manipulation
-    }
-    .btn-add-serie{width:100%;background:linear-gradient(to right,#3b82f6,#4f46e5);color:#fff;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:700;box-shadow:0 10px 15px -3px rgba(59,130,246,.25)}
+  .reps-control{display:flex;justify-content:center;align-items:center;margin:8px 0 10px;gap:10px}
+  .reps-display{font-size:26px;font-weight:900;color:var(--indigo);width:64px}
+  .btn-round{width:38px;height:38px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:18px;color:#374151;cursor:pointer}
 
-    .series-list{overflow:hidden}
-    .series-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-    .series-title{font-size:12px;font-weight:700;color:#374151}
-    .toggle-group{display:flex;gap:6px}
-    .toggle-btn{
-      font-size:12px;padding:6px 10px;border:1px solid #d1d5db;border-radius:999px;background:#fff;color:#374151
-    }
-    .toggle-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+  #history{display:none;text-align:left;margin-top:10px;font-size:14px;color:#374151;background:#f8fafc;border-radius:10px;padding:10px;max-height:160px;overflow:auto}
+  #btnHistory,#btnHideHistory{width:100%;background:var(--indigo);color:#fff;border:none;padding:10px;border-radius:10px;font-weight:700;margin-top:6px}
+  #btnHideHistory{background:#334155}
 
-    .series-container{
-      max-height:var(--series-max-h);overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px;
-      -webkit-overflow-scrolling:touch
-    }
-    .serie-item{display:flex;align-items:center;justify-content:space-between;background:#f9fafb;padding:10px;border-radius:10px}
-    .serie-info{display:flex;align-items:center;gap:10px}
-    .serie-number{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:linear-gradient(to right,#3b82f6,#4f46e5);color:#fff;border-radius:8px;font-weight:800;font-size:14px}
-    .serie-details p{font-size:12px;font-weight:700;color:#1f2937;margin-bottom:2px}
-    .serie-details .reps{font-size:14px;font-weight:800;color:#4f46e5}
-    .btn-remove{width:28px;height:28px;padding:0;border-radius:8px;background:transparent;color:#ef4444;border:none;font-size:18px}
-    .btn-remove:hover{background:#fee2e2;color:#b91c1c}
-    .empty-state{text-align:center;padding:12px 0;color:#9ca3af;font-size:12px}
+  .btn{background:var(--blue);color:#fff}
+  .btn:hover{filter:brightness(0.95)}
 
-    .btn-reset-all{width:100%;background:#fff;border:2px solid #d1d5db;color:#374151;padding:10px;border-radius:10px;font-size:14px;font-weight:700}
-    .footer{display:none} /* escondido p/ caber 1 tela */
-    .motivation{text-align:center;color:#4b5563;font-size:12px}
-
-    @supports (height: 100dvh) {
-      body { min-height: 100dvh; height: 100dvh; }
-    }
-  </style>
+  /* espaço respira, ainda cabe 1 tela na maioria dos iPhones */
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <!-- Header -->
-      <div class="header">
-        <h1>Contador de Séries</h1>
-        <p>Acompanhe seu progresso de treino</p>
-      </div>
+<div class="card">
+  <h1>Contador de Séries</h1>
+  <div class="author">Desenvolvido por: Renato Neves</div>
 
-      <!-- Total Workout Timer -->
-      <div class="timer-section timer-total">
-        <div class="timer-label">⏱️ Tempo Total de Treino</div>
-        <div class="timer-display" id="totalTime">00:00</div>
-        <div class="button-group">
-          <button class="btn-play" id="btnToggleTotal" aria-label="Iniciar/pausar tempo total"><span id="playIcon">▶</span><span id="playText">Iniciar</span></button>
-          <button class="btn-reset" id="btnResetTotal" aria-label="Zerar tempo total">↻</button>
-        </div>
-      </div>
-
-      <!-- Rest Timer (sempre visível) -->
-      <div id="restTimerSection" class="timer-section timer-rest">
-        <div class="timer-label">⏱️ Tempo de Descanso</div>
-        <div class="timer-display" id="restTime">00:00</div>
-        <div class="button-group">
-          <button class="btn-play" id="btnToggleRest" aria-label="Iniciar/pausar descanso"><span id="playIconRest">▶</span><span id="playTextRest">Iniciar</span></button>
-          <button class="btn-reset" id="btnResetRest" aria-label="Zerar tempo de descanso">↻</button>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats">
-        <div class="stat-box blue"><div class="stat-number" id="totalSeries">0</div><div class="stat-label">Séries</div></div>
-        <div class="stat-box indigo"><div class="stat-number" id="totalReps">0</div><div class="stat-label">Repetições</div></div>
-      </div>
-
-      <!-- Input Section -->
-      <div class="input-section">
-        <label class="input-label">Repetições da série atual</label>
-        <div class="reps-control">
-          <button class="btn-control" id="btnDecrease" aria-label="Diminuir repetições">−</button>
-          <div class="reps-display" id="currentReps">0</div>
-          <button class="btn-plus" id="btnIncrease" aria-label="Aumentar repetições">+</button>
-        </div>
-        <button class="btn-add-serie" id="btnAddSerie" aria-label="Adicionar série">+ Adicionar Série</button>
-      </div>
-
-      <!-- Series List -->
-      <div class="series-list">
-        <div class="series-title-row">
-          <div class="series-title">Histórico de Séries</div>
-          <div class="toggle-group">
-            <button id="btnViewHistorico" class="toggle-btn active" aria-pressed="true">Histórico</button>
-            <button id="btnViewAcumulado" class="toggle-btn" aria-pressed="false">Acumulado</button>
-          </div>
-        </div>
-        <div class="series-container" id="seriesContainer">
-          <div class="empty-state">Nenhuma série adicionada ainda. Comece a treinar! 💪</div>
-        </div>
-      </div>
-
-      <!-- Reset Button -->
-      <button class="btn-reset-all" id="btnResetAll">↻ Resetar Tudo</button>
-
-      <!-- Motivation -->
-      <div class="motivation" id="motivation"></div>
+  <!-- Tempo Total -->
+  <div class="timer-section timer-total">
+    <div class="label">⏱️ Tempo Total</div>
+    <div class="timer-display" id="totalTime">00:00</div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btnToggleTotal">▶ Iniciar</button>
+      <button class="btn-ghost" id="btnResetTotal">↻ Reset</button>
     </div>
   </div>
 
-  <script>
-    /* ===== Anti-zoom por teclado/gesto ===== */
-    document.addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && ['+','-','='].includes(e.key)) e.preventDefault();
-    }, { passive:false });
-    document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive:false });
-    ['gesturestart','gesturechange','gestureend'].forEach(evt =>
-      document.addEventListener(evt, e => e.preventDefault(), { passive:false })
-    );
+  <!-- Descanso -->
+  <div class="timer-section timer-rest">
+    <div class="label">🧘 Descanso</div>
+    <div class="timer-display" id="restTime">00:00</div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btnToggleRest">▶ Iniciar</button>
+      <button class="btn-ghost" id="btnResetRest">↻ Reset</button>
+    </div>
+  </div>
 
-    // ===== Estado =====
-    let series = [];
-    let currentReps = 0;
-    let restTime = 0;
-    let totalTime = 0;
-    let isRestRunning = false;
-    let isTotalRunning = false;
-    let viewMode = 'historico'; // 'historico' | 'acumulado'
+  <div class="stats">
+    <div class="stat-box">Séries: <span id="totalSeries">0</span></div>
+    <div class="stat-box">Repetições: <span id="totalReps">0</span></div>
+  </div>
 
-    const STORAGE_KEY = 'contador-series';
-    const STATE_KEY   = 'contador-series-state';
+  <div class="reps-control">
+    <button class="btn-round" id="btnDecrease">−</button>
+    <div class="reps-display" id="currentReps">0</div>
+    <button class="btn-round" id="btnIncrease">+</button>
+  </div>
 
-    // ===== Elementos =====
-    const currentRepsEl = document.getElementById('currentReps');
-    const totalSeriesEl = document.getElementById('totalSeries');
-    const totalRepsEl   = document.getElementById('totalReps');
-    const seriesContainerEl = document.getElementById('seriesContainer');
-    const restTimeEl = document.getElementById('restTime');
-    const totalTimeEl = document.getElementById('totalTime');
-    const motivationEl = document.getElementById('motivation');
+  <button class="btn" id="btnAddSerie">+ Adicionar Série</button>
+  <button id="btnHistory">📜 Histórico de Séries</button>
+  <div id="history"></div>
+  <button id="btnHideHistory" style="display:none;">❌ Ocultar Histórico</button>
+  <button class="btn" id="btnResetAll">↻ Resetar Tudo</button>
+</div>
 
-    const btnIncrease = document.getElementById('btnIncrease');
-    const btnDecrease = document.getElementById('btnDecrease');
-    const btnAddSerie = document.getElementById('btnAddSerie');
-    const btnToggleRest = document.getElementById('btnToggleRest');
-    const btnResetRest  = document.getElementById('btnResetRest');
-    const btnToggleTotal= document.getElementById('btnToggleTotal');
-    const btnResetTotal = document.getElementById('btnResetTotal');
-    const btnResetAll   = document.getElementById('btnResetAll');
+<script>
+let series=[],currentReps=0,restTime=0,totalTime=0,isRestRunning=false,isTotalRunning=false;
+const els={
+  totalSeries:document.getElementById('totalSeries'),
+  totalReps:document.getElementById('totalReps'),
+  currentReps:document.getElementById('currentReps'),
+  restTime:document.getElementById('restTime'),
+  totalTime:document.getElementById('totalTime'),
+  btnIncrease:document.getElementById('btnIncrease'),
+  btnDecrease:document.getElementById('btnDecrease'),
+  btnAddSerie:document.getElementById('btnAddSerie'),
+  btnResetAll:document.getElementById('btnResetAll'),
+  btnHistory:document.getElementById('btnHistory'),
+  btnHideHistory:document.getElementById('btnHideHistory'),
+  history:document.getElementById('history'),
+  btnToggleTotal:document.getElementById('btnToggleTotal'),
+  btnResetTotal:document.getElementById('btnResetTotal'),
+  btnToggleRest:document.getElementById('btnToggleRest'),
+  btnResetRest:document.getElementById('btnResetRest'),
+};
 
-    const btnViewHistorico = document.getElementById('btnViewHistorico');
-    const btnViewAcumulado = document.getElementById('btnViewAcumulado');
+function fmt(sec){const m=Math.floor(sec/60),s=sec%60;return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+function updateUI(){
+  els.currentReps.textContent=currentReps;
+  els.totalSeries.textContent=series.length;
+  els.totalReps.textContent=series.reduce((a,b)=>a+b.reps,0);
+  els.totalTime.textContent=fmt(totalTime);
+  els.restTime.textContent=fmt(restTime);
 
-    // ===== Init =====
-    function init(){
-      loadData();
-      loadState();
-      attachEventListeners();
+  // botões play/pause
+  els.btnToggleTotal.textContent = isTotalRunning ? '⏸ Pausar' : '▶ Iniciar';
+  els.btnToggleTotal.classList.toggle('pause', isTotalRunning);
+  els.btnToggleRest.textContent  = isRestRunning  ? '⏸ Pausar' : '▶ Iniciar';
+  els.btnToggleRest.classList.toggle('pause', isRestRunning);
+}
+
+function renderHistory(){
+  if(series.length===0){els.history.textContent='Nenhuma série adicionada.';return;}
+  els.history.innerHTML=series.map((s,i)=>`${i+1}ª série: <b>${s.reps}</b> repetições`).join('<br>');
+}
+
+function attach(){
+  els.btnIncrease.onclick=()=>{currentReps++;updateUI()};
+  els.btnDecrease.onclick=()=>{if(currentReps>0)currentReps--;updateUI()};
+  els.btnAddSerie.onclick=()=>{
+    if(currentReps>0){
+      series.push({id:Date.now(),reps:currentReps});
+      currentReps=0; // zera para próxima série
+      // ao adicionar série, inicia descanso automaticamente
+      isRestRunning=true; // liga descanso
       updateUI();
-      startTimers();
     }
-
-    function loadData(){
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) { try { series = JSON.parse(saved) || []; } catch{} }
+  };
+  els.btnResetAll.onclick=()=>{
+    if(confirm('Resetar tudo?')){
+      series=[];currentReps=0;restTime=0;totalTime=0;isRestRunning=false;isTotalRunning=false;
+      els.history.style.display='none'; els.btnHideHistory.style.display='none'; els.btnHistory.style.display='block';
+      updateUI();
     }
-    function saveData(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(series));
-    }
-    function loadState(){
-      const s = localStorage.getItem(STATE_KEY);
-      if (s) {
-        try {
-          const p = JSON.parse(s);
-          restTime = p.restTime || 0;
-          totalTime = p.totalTime || 0;
-          isRestRunning = !!p.isRestRunning;
-          isTotalRunning = !!p.isTotalRunning;
-        } catch{}
-      }
-    }
-    function saveState(){
-      localStorage.setItem(STATE_KEY, JSON.stringify({ restTime,totalTime,isRestRunning,isTotalRunning }));
-    }
+  };
+  els.btnHistory.onclick=()=>{renderHistory();els.history.style.display='block';els.btnHideHistory.style.display='block';els.btnHistory.style.display='none'};
+  els.btnHideHistory.onclick=()=>{els.history.style.display='none';els.btnHideHistory.style.display='none';els.btnHistory.style.display='block'};
 
-    function formatTime(seconds){
-      const m = Math.floor(seconds/60);
-      const s = seconds%60;
-      return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-    }
+  // timers
+  els.btnToggleTotal.onclick=()=>{isTotalRunning=!isTotalRunning;updateUI()};
+  els.btnResetTotal.onclick =()=>{totalTime=0;isTotalRunning=false;updateUI()};
+  els.btnToggleRest.onclick =()=>{isRestRunning=!isRestRunning;updateUI()};
+  els.btnResetRest.onclick  =()=>{restTime=0;isRestRunning=false;updateUI()};
+}
 
-    function renderSeries(){
-      if (series.length === 0){
-        seriesContainerEl.innerHTML = '<div class="empty-state">Nenhuma série adicionada ainda. Comece a treinar! 💪</div>';
-        return;
-      }
-      if (viewMode === 'historico'){
-        // Ex.: 1ª série: 10
-        seriesContainerEl.innerHTML = series.map((s, i) => `
-          <div class="serie-item">
-            <div class="serie-info">
-              <div class="serie-number">${i+1}</div>
-              <div class="serie-details">
-                <p>${i+1}ª série</p>
-                <div class="reps">${s.reps} ${s.reps===1?'repetição':'repetições'}</div>
-              </div>
-            </div>
-            <button class="btn-remove" aria-label="Remover série" onclick="removeSerie(${s.id})">×</button>
-          </div>
-        `).join('');
-      } else {
-        // Acumulado progressivo
-        let run = 0;
-        seriesContainerEl.innerHTML = series.map((s, i) => {
-          run += s.reps;
-          return `
-            <div class="serie-item">
-              <div class="serie-info">
-                <div class="serie-number">${i+1}</div>
-                <div class="serie-details">
-                  <p>${i+1}ª série (acumulado)</p>
-                  <div class="reps">${run} no total</div>
-                </div>
-              </div>
-              <button class="btn-remove" aria-label="Remover série" onclick="removeSerie(${s.id})">×</button>
-            </div>
-          `;
-        }).join('');
-      }
-    }
+function tick(){
+  if(isTotalRunning) totalTime++;
+  if(isRestRunning)  restTime++;
+  updateUI();
+}
 
-    function updateUI(){
-      currentRepsEl.textContent = currentReps;
-      totalSeriesEl.textContent = series.length;
-      totalRepsEl.textContent   = series.reduce((sum,s)=>sum+s.reps,0);
-      totalTimeEl.textContent   = formatTime(totalTime);
-      restTimeEl.textContent    = formatTime(restTime);
-
-      renderSeries();
-
-      // motivação
-      const t = series.length;
-      let msg = '';
-      if (t===1) msg='Ótimo começo! 🎯';
-      else if (t>1 && t<5) msg='Você está no caminho certo! 🔥';
-      else if (t>=5 && t<10) msg='Impressionante! Você é um guerreiro! 💪';
-      else if (t>=10) msg='Você é uma máquina! Parabéns pela dedicação! 🏆';
-      motivationEl.textContent = msg;
-
-      // estados botões play/pause
-      btnToggleRest.className  = isRestRunning  ? 'btn-play pause' : 'btn-play';
-      btnToggleRest.innerHTML  = isRestRunning  ? '<span>⏸</span><span>Pausar</span>' : '<span>▶</span><span>Iniciar</span>';
-      btnToggleTotal.className = isTotalRunning ? 'btn-play pause' : 'btn-play';
-      btnToggleTotal.innerHTML = isTotalRunning ? '<span>⏸</span><span>Pausar</span>' : '<span>▶</span><span>Iniciar</span>';
-
-      // estados toggle histórico/acumulado
-      if (viewMode==='historico'){
-        btnViewHistorico.classList.add('active'); btnViewHistorico.setAttribute('aria-pressed','true');
-        btnViewAcumulado.classList.remove('active'); btnViewAcumulado.setAttribute('aria-pressed','false');
-      } else {
-        btnViewAcumulado.classList.add('active'); btnViewAcumulado.setAttribute('aria-pressed','true');
-        btnViewHistorico.classList.remove('active'); btnViewHistorico.setAttribute('aria-pressed','false');
-      }
-
-      saveState();
-    }
-
-    function attachEventListeners(){
-      const safe = fn => e => { e.preventDefault(); e.stopPropagation(); fn(); };
-
-      btnIncrease.addEventListener('click', safe(() => { currentReps++; updateUI(); }));
-      btnDecrease.addEventListener('click', safe(() => { if (currentReps>0) currentReps--; updateUI(); }));
-      btnAddSerie .addEventListener('click', safe(() => {
-        if (currentReps>0){
-          series.push({ id: Date.now(), reps: currentReps });
-          currentReps = 0;
-          restTime = 0;         // zera descanso ao finalizar a série
-          isRestRunning = true; // inicia descanso automaticamente
-          if (!isTotalRunning) isTotalRunning = true;
-          saveData(); updateUI();
-        }
-      }));
-      btnToggleRest .addEventListener('click', safe(() => { isRestRunning  = !isRestRunning;  updateUI(); }));
-      btnResetRest  .addEventListener('click', safe(() => { restTime       = 0; isRestRunning  = false; updateUI(); }));
-      btnToggleTotal.addEventListener('click', safe(() => { isTotalRunning = !isTotalRunning; updateUI(); }));
-      btnResetTotal .addEventListener('click', safe(() => { totalTime      = 0; isTotalRunning = false; updateUI(); }));
-
-      btnResetAll.addEventListener('click', safe(() => {
-        if (confirm('Tem certeza que deseja resetar tudo?')){
-          series=[]; currentReps=0; restTime=0; totalTime=0; isRestRunning=false; isTotalRunning=false;
-          localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(STATE_KEY);
-          updateUI();
-        }
-      }));
-
-      btnViewHistorico.addEventListener('click', safe(() => { viewMode='historico'; updateUI(); }));
-      btnViewAcumulado.addEventListener('click', safe(() => { viewMode='acumulado'; updateUI(); }));
-    }
-
-    function removeSerie(id){
-      series = series.filter(s=>s.id!==id);
-      saveData(); updateUI();
-    }
-
-    function startTimers(){
-      setInterval(() => {
-        if (isRestRunning)  restTime++;
-        if (isTotalRunning) totalTime++;
-        updateUI();
-      }, 1000);
-    }
-
-    init();
-  </script>
+attach();
+updateUI();
+setInterval(tick,1000);
+</script>
 </body>
 </html>
