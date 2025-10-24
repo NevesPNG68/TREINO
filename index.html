@@ -10,30 +10,30 @@
   }
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:linear-gradient(135deg,#eef2ff,#fff7ed);display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:10px}
   .card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(31,41,55,.12);padding:16px;width:100%;max-width:420px;text-align:center}
-  h1{margin:0 0 2px;font-size:20px;color:var(--slate)}
-  .author{font-size:12px;color:var(--muted);margin-bottom:10px}
+  h1{margin:0 0 2px;font-size:22px;color:var(--slate)}
+  .author{font-size:12px;color:var(--muted);margin-bottom:12px}
   .timer-section{margin-bottom:10px;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.06)}
   .timer-total{background:linear-gradient(135deg,#eef2ff,#eff6ff)}
   .timer-rest{background:linear-gradient(135deg,#fff7ed,#ffe4e6)}
-  .label{font-size:12px;color:#374151;font-weight:700;letter-spacing:.02em}
-  .timer-display{font-size:30px;font-weight:800;margin:6px 0 8px;color:var(--slate);font-variant-numeric:tabular-nums}
+  .label{font-size:14px;color:#374151;font-weight:700;letter-spacing:.02em}
+  .timer-display{font-size:32px;font-weight:800;margin:8px 0 10px;color:var(--slate);font-variant-numeric:tabular-nums}
   .timer-total .timer-display{color:var(--indigo)}
   .timer-rest .timer-display{color:var(--orange)}
-  .btn-row{display:flex;gap:8px;justify-content:center}
-  button{border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:14px;transition:transform .06s ease, box-shadow .2s ease}
+  .btn-row{display:flex;gap:10px;justify-content:center}
+  button{border:none;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;transition:transform .06s ease, box-shadow .2s ease}
   button:active{transform:translateY(1px)}
   .btn-primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--indigo));box-shadow:0 6px 14px rgba(59,130,246,.25)}
   .btn-primary.pause{background:linear-gradient(135deg,#ef4444,#dc2626)}
   .btn-ghost{background:#fff;border:2px solid rgba(0,0,0,.08);color:#374151}
-  .stats{display:flex;justify-content:space-around;margin:8px 0 10px}
-  .stat-box{font-size:13px;font-weight:800;color:#374151;background:#f8fafc;border-radius:10px;padding:8px 10px}
-  .reps-control{display:flex;justify-content:center;align-items:center;margin:8px 0 10px;gap:10px}
-  .reps-display{font-size:26px;font-weight:900;color:var(--indigo);width:64px}
-  .btn-round{width:38px;height:38px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:20px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  #history{display:none;text-align:left;margin-top:10px;font-size:14px;color:#374151;background:#f8fafc;border-radius:10px;padding:10px;max-height:160px;overflow:auto}
-  #btnHistory,#btnHideHistory{width:100%;background:var(--indigo);color:#fff;border:none;padding:10px;border-radius:10px;font-weight:700;margin-top:6px}
+  .stats{display:flex;justify-content:space-around;margin:12px 0 12px}
+  .stat-box{font-size:15px;font-weight:800;color:#374151;background:#f8fafc;border-radius:10px;padding:10px 12px}
+  .reps-control{display:flex;justify-content:center;align-items:center;margin:10px 0 12px;gap:14px}
+  .reps-display{font-size:32px;font-weight:900;color:var(--indigo);width:72px}
+  .btn-round{width:42px;height:42px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:22px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  #history{display:none;text-align:left;margin-top:12px;font-size:16px;color:#374151;background:#f8fafc;border-radius:10px;padding:14px;max-height:200px;overflow:auto;line-height:1.5}
+  #btnHistory,#btnHideHistory{width:100%;background:var(--indigo);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;margin-top:8px;font-size:15px}
   #btnHideHistory{background:#334155}
-  .btn{background:var(--blue);color:#fff}
+  .btn{background:var(--blue);color:#fff;font-size:15px}
   .btn:hover{filter:brightness(0.95)}
 </style>
 </head>
@@ -121,7 +121,7 @@ function renderHistory(){
   els.history.innerHTML=series.map((s,i)=>`${i+1}ª série: <b>${s.reps}</b> repetições`).join('<br>');
 }
 
-// RESET global: zera estados e UI (corrigido extra '}' que gerava erro)
+// RESET global: zera estados e UI
 function resetAll(){
   series=[]; currentReps=0; restTime=0; totalTime=0; isRestRunning=false; isTotalRunning=false;
   if(els.history){ els.history.innerHTML=''; els.history.style.display='none'; }
@@ -137,8 +137,8 @@ function attach(){
   els.btnAddSerie.onclick =()=>{
     if(currentReps>0){
       series.push({id:Date.now(),reps:currentReps});
-      currentReps=0; // prepara próxima
-      isRestRunning=true; // inicia descanso automático
+      currentReps=0;
+      isRestRunning=true;
       updateUI();
     }
   };
@@ -178,19 +178,6 @@ function tick(){ if(isTotalRunning) totalTime++; if(isRestRunning) restTime++; u
 attach();
 updateUI();
 setInterval(tick,1000);
-
-// ==== Testes simples (não alteram layout e garantem que não há SyntaxError) ====
-(function selfTest(){
-  try{
-    console.assert(typeof resetAll==='function','resetAll deve existir');
-    const t0 = els.totalTime.textContent; // estado inicial
-    resetAll(); // não deve quebrar nem deixar campos vazios
-    console.assert(els.totalTime.textContent==='00:00' && els.restTime.textContent==='00:00','Timers devem zerar');
-    console.assert(els.totalSeries.textContent==='0' && els.totalReps.textContent==='0','Séries e reps devem zerar');
-    // restaura UI para estado inicial (já zerado)
-    console.log('[OK] Autoteste básico passou.');
-  }catch(err){ console.error('[FALHA NO TESTE]', err); }
-})();
 </script>
 </body>
 </html>
