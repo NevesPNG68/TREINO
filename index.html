@@ -10,30 +10,30 @@
   }
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:linear-gradient(135deg,#eef2ff,#fff7ed);display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:10px}
   .card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(31,41,55,.12);padding:16px;width:100%;max-width:420px;text-align:center}
-  h1{margin:0 0 2px;font-size:22px;color:var(--slate)}
-  .author{font-size:12px;color:var(--muted);margin-bottom:12px}
-  .timer-section{margin-bottom:10px;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.06)}
+  h1{margin:0 0 2px;font-size:24px;color:var(--slate)}
+  .author{font-size:14px;color:var(--muted);margin-bottom:14px}
+  .timer-section{margin-bottom:12px;padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,.06)}
   .timer-total{background:linear-gradient(135deg,#eef2ff,#eff6ff)}
   .timer-rest{background:linear-gradient(135deg,#fff7ed,#ffe4e6)}
-  .label{font-size:14px;color:#374151;font-weight:700;letter-spacing:.02em}
-  .timer-display{font-size:32px;font-weight:800;margin:8px 0 10px;color:var(--slate);font-variant-numeric:tabular-nums}
+  .label{font-size:16px;color:#374151;font-weight:700;letter-spacing:.02em}
+  .timer-display{font-size:34px;font-weight:800;margin:10px 0 12px;color:var(--slate);font-variant-numeric:tabular-nums}
   .timer-total .timer-display{color:var(--indigo)}
   .timer-rest .timer-display{color:var(--orange)}
   .btn-row{display:flex;gap:10px;justify-content:center}
-  button{border:none;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;transition:transform .06s ease, box-shadow .2s ease}
+  button{border:none;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:700;font-size:16px;transition:transform .06s ease, box-shadow .2s ease}
   button:active{transform:translateY(1px)}
   .btn-primary{color:#fff;background:linear-gradient(135deg,var(--blue),var(--indigo));box-shadow:0 6px 14px rgba(59,130,246,.25)}
   .btn-primary.pause{background:linear-gradient(135deg,#ef4444,#dc2626)}
   .btn-ghost{background:#fff;border:2px solid rgba(0,0,0,.08);color:#374151}
-  .stats{display:flex;justify-content:space-around;margin:12px 0 12px}
-  .stat-box{font-size:15px;font-weight:800;color:#374151;background:#f8fafc;border-radius:10px;padding:10px 12px}
-  .reps-control{display:flex;justify-content:center;align-items:center;margin:10px 0 12px;gap:14px}
-  .reps-display{font-size:32px;font-weight:900;color:var(--indigo);width:72px}
-  .btn-round{width:42px;height:42px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:22px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  #history{display:none;text-align:left;margin-top:12px;font-size:16px;color:#374151;background:#f8fafc;border-radius:10px;padding:14px;max-height:200px;overflow:auto;line-height:1.5}
-  #btnHistory,#btnHideHistory{width:100%;background:var(--indigo);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;margin-top:8px;font-size:15px}
+  .stats{display:flex;justify-content:space-around;margin:14px 0 14px}
+  .stat-box{font-size:17px;font-weight:800;color:#374151;background:#f8fafc;border-radius:10px;padding:12px 14px}
+  .reps-control{display:flex;justify-content:center;align-items:center;margin:12px 0 14px;gap:16px}
+  .reps-display{font-size:34px;font-weight:900;color:var(--indigo);width:80px}
+  .btn-round{width:46px;height:46px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:24px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  #history{display:none;text-align:left;margin-top:14px;font-size:20px;color:#1f2937;background:#f8fafc;border-radius:10px;padding:16px;max-height:220px;overflow:auto;line-height:1.6;font-weight:600}
+  #btnHistory,#btnHideHistory{width:100%;background:var(--indigo);color:#fff;border:none;padding:14px;border-radius:10px;font-weight:700;margin-top:10px;font-size:16px}
   #btnHideHistory{background:#334155}
-  .btn{background:var(--blue);color:#fff;font-size:15px}
+  .btn{background:var(--blue);color:#fff;font-size:16px}
   .btn:hover{filter:brightness(0.95)}
 </style>
 </head>
@@ -73,111 +73,20 @@
   <button class="btn" id="btnResetAll" type="button" data-label-default="↻ Resetar Tudo">↻ Resetar Tudo</button>
 </div>
 <script>
-// Bloqueios de zoom por gesto/atalho
 ['gesturestart','gesturechange','gestureend'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['+','-','='].includes(e.key))e.preventDefault()},{passive:false});
 
-// Estado
 let series=[],currentReps=0,restTime=0,totalTime=0,isRestRunning=false,isTotalRunning=false;
-const els={
-  totalSeries:document.getElementById('totalSeries'),
-  totalReps:document.getElementById('totalReps'),
-  currentReps:document.getElementById('currentReps'),
-  restTime:document.getElementById('restTime'),
-  totalTime:document.getElementById('totalTime'),
-  btnIncrease:document.getElementById('btnIncrease'),
-  btnDecrease:document.getElementById('btnDecrease'),
-  btnAddSerie:document.getElementById('btnAddSerie'),
-  btnResetAll:document.getElementById('btnResetAll'),
-  btnHistory:document.getElementById('btnHistory'),
-  btnHideHistory:document.getElementById('btnHideHistory'),
-  history:document.getElementById('history'),
-  btnToggleTotal:document.getElementById('btnToggleTotal'),
-  btnResetTotal:document.getElementById('btnResetTotal'),
-  btnToggleRest:document.getElementById('btnToggleRest'),
-  btnResetRest:document.getElementById('btnResetRest')
-};
+const els={totalSeries:document.getElementById('totalSeries'),totalReps:document.getElementById('totalReps'),currentReps:document.getElementById('currentReps'),restTime:document.getElementById('restTime'),totalTime:document.getElementById('totalTime'),btnIncrease:document.getElementById('btnIncrease'),btnDecrease:document.getElementById('btnDecrease'),btnAddSerie:document.getElementById('btnAddSerie'),btnResetAll:document.getElementById('btnResetAll'),btnHistory:document.getElementById('btnHistory'),btnHideHistory:document.getElementById('btnHideHistory'),history:document.getElementById('history'),btnToggleTotal:document.getElementById('btnToggleTotal'),btnResetTotal:document.getElementById('btnResetTotal'),btnToggleRest:document.getElementById('btnToggleRest'),btnResetRest:document.getElementById('btnResetRest')};
 
-// Util
 function fmt(sec){const m=Math.floor(sec/60),s=sec%60;return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
-
-// Atualiza UI
-function updateUI(){
-  els.currentReps.textContent=currentReps;
-  els.totalSeries.textContent=series.length;
-  els.totalReps.textContent=series.reduce((a,b)=>a+b.reps,0);
-  els.totalTime.textContent=fmt(totalTime);
-  els.restTime.textContent=fmt(restTime);
-  els.btnToggleTotal.textContent=isTotalRunning?'⏸ Pausar':'▶ Iniciar';
-  els.btnToggleTotal.classList.toggle('pause',isTotalRunning);
-  els.btnToggleRest.textContent=isRestRunning?'⏸ Pausar':'▶ Iniciar';
-  els.btnToggleRest.classList.toggle('pause',isRestRunning);
-}
-
-// Render histórico (lista expandida)
-function renderHistory(){
-  if(series.length===0){ els.history.textContent='Nenhuma série adicionada.'; return; }
-  els.history.innerHTML=series.map((s,i)=>`${i+1}ª série: <b>${s.reps}</b> repetições`).join('<br>');
-}
-
-// RESET global: zera estados e UI
-function resetAll(){
-  series=[]; currentReps=0; restTime=0; totalTime=0; isRestRunning=false; isTotalRunning=false;
-  if(els.history){ els.history.innerHTML=''; els.history.style.display='none'; }
-  if(els.btnHideHistory){ els.btnHideHistory.style.display='none'; }
-  if(els.btnHistory){ els.btnHistory.style.display='block'; }
-  updateUI();
-}
-
-// Liga eventos
-function attach(){
-  els.btnIncrease.onclick=()=>{ currentReps++; updateUI(); };
-  els.btnDecrease.onclick=()=>{ if(currentReps>0) currentReps--; updateUI(); };
-  els.btnAddSerie.onclick =()=>{
-    if(currentReps>0){
-      series.push({id:Date.now(),reps:currentReps});
-      currentReps=0;
-      isRestRunning=true;
-      updateUI();
-    }
-  };
-
-  // Resetar Tudo com confirmação por duplo toque (compatível iPhone)
-  let __resetArmed=false,__resetTimer=null;
-  els.btnResetAll.addEventListener('click',(e)=>{
-    e.preventDefault(); e.stopPropagation();
-    if(!__resetArmed){
-      __resetArmed=true;
-      const prev=els.btnResetAll.getAttribute('data-label-default')||'↻ Resetar Tudo';
-      els.btnResetAll.textContent='Toque novamente para confirmar';
-      clearTimeout(__resetTimer);
-      __resetTimer=setTimeout(()=>{ __resetArmed=false; els.btnResetAll.textContent=prev; }, 2500);
-      return;
-    }
-    clearTimeout(__resetTimer);
-    __resetArmed=false;
-    resetAll();
-    els.btnResetAll.textContent=els.btnResetAll.getAttribute('data-label-default')||'↻ Resetar Tudo';
-  });
-
-  // Mostrar/ocultar histórico
-  els.btnHistory.onclick=()=>{ renderHistory(); els.history.style.display='block'; els.btnHideHistory.style.display='block'; els.btnHistory.style.display='none'; };
-  els.btnHideHistory.onclick=()=>{ els.history.style.display='none'; els.btnHideHistory.style.display='none'; els.btnHistory.style.display='block'; };
-
-  // Timers
-  els.btnToggleTotal.onclick=()=>{ isTotalRunning=!isTotalRunning; updateUI(); };
-  els.btnResetTotal.onclick =()=>{ totalTime=0; isTotalRunning=false; updateUI(); };
-  els.btnToggleRest.onclick =()=>{ isRestRunning=!isRestRunning; updateUI(); };
-  els.btnResetRest.onclick  =()=>{ restTime=0; isRestRunning=false; updateUI(); };
-}
-
-// Tick do relógio
-function tick(){ if(isTotalRunning) totalTime++; if(isRestRunning) restTime++; updateUI(); }
-
-attach();
-updateUI();
-setInterval(tick,1000);
+function updateUI(){els.currentReps.textContent=currentReps;els.totalSeries.textContent=series.length;els.totalReps.textContent=series.reduce((a,b)=>a+b.reps,0);els.totalTime.textContent=fmt(totalTime);els.restTime.textContent=fmt(restTime);els.btnToggleTotal.textContent=isTotalRunning?'⏸ Pausar':'▶ Iniciar';els.btnToggleTotal.classList.toggle('pause',isTotalRunning);els.btnToggleRest.textContent=isRestRunning?'⏸ Pausar':'▶ Iniciar';els.btnToggleRest.classList.toggle('pause',isRestRunning);}
+function renderHistory(){if(series.length===0){els.history.textContent='Nenhuma série adicionada.';return;}els.history.innerHTML=series.map((s,i)=>`${i+1}ª série: <b>${s.reps}</b> repetições`).join('<br>');}
+function resetAll(){series=[];currentReps=0;restTime=0;totalTime=0;isRestRunning=false;isTotalRunning=false;if(els.history){els.history.innerHTML='';els.history.style.display='none';}if(els.btnHideHistory){els.btnHideHistory.style.display='none';}if(els.btnHistory){els.btnHistory.style.display='block';}updateUI();}
+function attach(){els.btnIncrease.onclick=()=>{currentReps++;updateUI();};els.btnDecrease.onclick=()=>{if(currentReps>0)currentReps--;updateUI();};els.btnAddSerie.onclick =()=>{if(currentReps>0){series.push({id:Date.now(),reps:currentReps});currentReps=0;isRestRunning=true;updateUI();}};let __resetArmed=false,__resetTimer=null;els.btnResetAll.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();if(!__resetArmed){__resetArmed=true;const prev=els.btnResetAll.getAttribute('data-label-default')||'↻ Resetar Tudo';els.btnResetAll.textContent='Toque novamente para confirmar';clearTimeout(__resetTimer);__resetTimer=setTimeout(()=>{__resetArmed=false;els.btnResetAll.textContent=prev;},2500);return;}clearTimeout(__resetTimer);__resetArmed=false;resetAll();els.btnResetAll.textContent=els.btnResetAll.getAttribute('data-label-default')||'↻ Resetar Tudo';});els.btnHistory.onclick=()=>{renderHistory();els.history.style.display='block';els.btnHideHistory.style.display='block';els.btnHistory.style.display='none';};els.btnHideHistory.onclick=()=>{els.history.style.display='none';els.btnHideHistory.style.display='none';els.btnHistory.style.display='block';};els.btnToggleTotal.onclick=()=>{isTotalRunning=!isTotalRunning;updateUI();};els.btnResetTotal.onclick =()=>{totalTime=0;isTotalRunning=false;updateUI();};els.btnToggleRest.onclick =()=>{isRestRunning=!isRestRunning;updateUI();};els.btnResetRest.onclick  =()=>{restTime=0;isRestRunning=false;updateUI();};}
+function tick(){if(isTotalRunning)totalTime++;if(isRestRunning)restTime++;updateUI();}
+attach();updateUI();setInterval(tick,1000);
 </script>
 </body>
 </html>
